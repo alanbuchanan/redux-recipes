@@ -1,4 +1,6 @@
-
+//TODO: Local storage stuff (get on init, set on save)
+//TODO: Test + Refactor
+//TODO: Style
 
 const initial = () => {
 	return {
@@ -14,24 +16,36 @@ const initial = () => {
 // Reducer
 const recipeReducer = (state = initial(), action) => {
 	switch (action.type) {
+
 		case 'ADD_RECIPE':
+			console.log(action);
 			let newRecipes = [...state.recipes, action];
 			return Object.assign({}, state, {recipes: newRecipes})
 			break;
+
 		case 'DELETE_RECIPE':
-			console.log('id', action.id)
+			console.log(action);
 			let recipesWithDeletion = [
 				...state.recipes.slice(0, action.id),
 				...state.recipes.slice(action.id + 1)
 			];
 			return Object.assign({}, state, {recipes: recipesWithDeletion});
 			break;
+
 		case 'CHANGE_SELECTED_RECIPE':
-			console.log('change selected recipe action:', action)
+			console.log(action);
 			return Object.assign({}, state, {currentlySelected: action.currentlySelected});
+
 		case 'EDIT_RECIPE':
-			return state;
+			console.log(action)
+			let editedRecipes = [
+				...state.recipes.slice(0, action.id),
+				action,
+				...state.recipes.slice(action.id + 1)
+			]
+			return Object.assign({}, state, {recipes: editedRecipes} )
 			break;
+
 		default:
 			return state;
 			break;
@@ -51,12 +65,27 @@ const RecipeList = React.createClass({
 
 	editPrompt() {
 		let current = store.getState().recipes[this.state.currentlySelected];
-		console.log('cirr:', current)
 		vex.close()
 		vex.dialog.open({
 			message: 'Edit Recipe',
-			input: `<input type="text" value=${current.title} />`,
-			callback: () => {}
+			input: `<input name="editTitle" type="text" value="${current.title}" />
+					<textarea name="editIngs">${current.ings}</textarea>`,
+			buttons: [
+				$.extend({}, vex.dialog.buttons.YES, {
+					text: 'OK'
+				}), $.extend({}, vex.dialog.buttons.NO, {
+					text: 'Cancel',
+					click: () => vex.close()
+				})
+			],
+			callback: data => {
+				store.dispatch({
+					type: 'EDIT_RECIPE',
+					id: this.state.currentlySelected,
+					title: data.editTitle,
+					ings: data.editIngs
+				})
+			}
 		})
 	},
 
@@ -75,23 +104,14 @@ const RecipeList = React.createClass({
 				input: '',
 				buttons: [
 					$.extend({}, vex.dialog.buttons.YES, {
-						text: 'OK'
+						text: 'Cancel'
 					}), $.extend({}, vex.dialog.buttons.NO, {
 						text: 'Edit',
 						click: () => this.editPrompt()
 					})
 				],
 				callback: data => {
-
-		    		if (data === false) {return console.log('Cancelled');}
-
-		    		console.log('Date', data.userTitle, 'Color', data.userIngs);
-					store.dispatch({
-						type: 'ADD_RECIPE',
-						id: Date.now(),
-						title: data.userTitle,
-						ings: data.userIngs
-					});
+		    		if (data === false) {return console.log('Cancelled');};
 				}
 			});
 		});
@@ -118,23 +138,21 @@ const RecipeBox = React.createClass({
 			message: 'Add an item',
 			input: `<input name="userTitle" type="text" placeholder="Name"/>
 				<textarea name="userIngs" type="text" placeholder="Ingredients/Cooking instructions"/>`,
+			
 			callback: data => {
-
-	    		if (data === false) {return console.log('Cancelled');}
-
-	    		console.log('Date', data.userTitle, 'Color', data.userIngs);
-				store.dispatch({
-					type: 'ADD_RECIPE',
-					id: Date.now(),
-					title: data.userTitle,
-					ings: data.userIngs
-				});
+				if(data) {
+					store.dispatch({
+						type: 'ADD_RECIPE',
+						id: Date.now(),
+						title: data.userTitle,
+						ings: data.userIngs
+					});
+				}
 			}
 		});
 	},
 
 	render() {
-
 		let {recipes, add} = this.props;
 		return (
 			<div>
