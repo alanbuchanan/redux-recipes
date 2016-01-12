@@ -1,7 +1,9 @@
-$bgColor: #fff;
-$addButtonColor: #118DF0;
-@import url(https://fonts.googleapis.com/css?family=Marck+Script);
 @import url(https://fonts.googleapis.com/css?family=Chewy);
+@import url(https://fonts.googleapis.com/css?family=Bad+Script);
+$bg-color: #fff;
+$add-button-color: #118DF0;
+$header-main-title-font: 'Chewy', cursive;
+$list-title-font: 'Bad Script', cursive;
 
 @mixin main-transition() {
 	-webkit-transition: opacity .12s ease-in-out !important;
@@ -10,17 +12,21 @@ $addButtonColor: #118DF0;
 	-o-transition: opacity .12s ease-in-out !important;
 	transition: opacity .12s ease-in-out !important;
 	&:hover {
-		opacity: 0.8;
+		opacity: 0.9;
 	}
 }
 
 body {
-	background-color: $bgColor;
+	background-color: $bg-color;
 }
 
 ul {
 	list-style-type: none;
 	position: relative;
+}
+
+textarea {
+	resize: none;
 }
 
 a {
@@ -40,7 +46,7 @@ a {
 .header__mainTitle {
 	position: relative;
 	float: left;
-	font-family: 'Chewy', cursive;
+	font-family: $header-main-title-font;
 	color: lightgray;
 	font-size: 20px;
 }
@@ -55,7 +61,7 @@ a {
 	height:0;
 	padding-bottom: 100%;
 	border-radius: 50%;
-	background-color: $addButtonColor;
+	background-color: $add-button-color;
 	cursor: pointer;
 	opacity: 1;
 	@include main-transition();
@@ -88,13 +94,20 @@ a {
 }
 
 .list__title {
-	font-size: 50px;
-	font-family: 'Marck Script', cursive;
+	margin-top: 10px;
+	font-size: 40px;
+	font-family: $list-title-font;
 	display: inline-block;
 	min-height: 100%
 }
 
 .list__close-button {
-	padding-top: 10px;
+	margin-top: 10px;
 	color: gray;
+}
+
+@media screen and (min-width: 992px){
+	.container {
+		width: 750px
+	}
 }

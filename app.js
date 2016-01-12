@@ -1,27 +1,15 @@
-//TODO: Style w stuff from that stack overflow comment
-//TODO: Mousover close-button
-//TODO: Big-ass titles instead of images
-//TODO: delete infoprompt callback?
-//TODO: Test + Refactor
-//TODO: Eslint
-//TODO: Ask for feedback from FCC and stackoverflow
-//TODO: Find out why it's able to retrieve by ID despite not specifying one
-
 const initial = () => {
-
    let recipesInit = {
       recipes: [
-         {id: 1, title: 'Gorgonzola pie', ings: 'cheese, crust, sauce'},
-         {id: 2, title: 'Parmesan di Siegfried Sassoon', ings: 'more cheese, chicken, roast'},
-         {id: 3, title: 'Zuppa di Lentilli', ings: 'lentils probably, salt and pepper, cream, salt, pepper, yummy stuff, cheese, cheeesiness, flavourings, sugar, spices'}
+         {id: 1, title: 'Pao de queijo', ings: '100ml milk, 100ml vegetable oil, Pinch of salt, 250g tapioca flour, 125g parmesan or vegetarian alternative, grated, 1 free-range egg'},
+         {id: 2, title: 'Monastery Gyuvetch', ings: '2 lbs beef, 4 tomatoes, chopped, 1/2 lbs mushrooms, 1 cup rice, 1 onion, chopped, 15 olives, whole, a bunch of parsley, 2 tbsp vegetable oil, 1 tbsp butter, 1 tbsp sugar, 2 1/2 cups beef stock, black pepper, paprika and salt'},
+         {id: 3, title: 'Hobaktteok', ings: '½ cup cooked butternut squash, ¼ cup honey, 2 tablespoon freshly squeezed lemon, 2 cups rice flour (frozen rice flour sold at a Korean grocery store or make your own), lemon zest from 1 lemon, 1 tablespoon water, ¼ teaspoon salt,2 tablespoons sugar'}
       ],
       currentlySelected: 1
-   }
+   };
 
    var retrievedObject = localStorage.getItem('recipesObject');
    let parsedRetrievedObject = JSON.parse(retrievedObject);
-   console.log('parsedretrievedobject:', parsedRetrievedObject)
-   console.log('recipesInit:', recipesInit)
 
    const noRecipesInLocalStorage = parsedRetrievedObject === null || parsedRetrievedObject.recipes.length == 0;
 
@@ -30,7 +18,7 @@ const initial = () => {
    } else {
       return parsedRetrievedObject;
    }
-}
+};
 
 // Reducer
 const recipeReducer = (state = initial(), action) => {
@@ -38,71 +26,70 @@ const recipeReducer = (state = initial(), action) => {
    let newRecipes = [];
 
    switch (action.type) {
+   case 'ADD_RECIPE':
+      console.log(action);
+      newRecipes = [...state.recipes, action];
+      newState = Object.assign({}, state, {recipes: newRecipes});
+      localStorage.setItem('recipesObject', JSON.stringify(newState));
+      return newState;
 
-      case 'ADD_RECIPE':
-         console.log(action);
-         newRecipes = [...state.recipes, action];
-         newState = Object.assign({}, state, {recipes: newRecipes})
-         localStorage.setItem('recipesObject', JSON.stringify(newState));
-         return newState;
+   case 'DELETE_RECIPE':
+      console.log(action);
+      newRecipes = [
+         ...state.recipes.slice(0, action.id),
+         ...state.recipes.slice(action.id + 1)
+      ];
+      newState = Object.assign({}, state, {recipes: newRecipes});
+      localStorage.setItem('recipesObject', JSON.stringify(newState));
+      return newState;
 
-      case 'DELETE_RECIPE':
-         console.log(action);
-         newRecipes = [
-            ...state.recipes.slice(0, action.id),
-            ...state.recipes.slice(action.id + 1)
-         ];
-         newState = Object.assign({}, state, {recipes: newRecipes});
-         localStorage.setItem('recipesObject', JSON.stringify(newState));
-         return newState;
+   case 'CHANGE_SELECTED_RECIPE':
+      console.log(action);
+      return Object.assign({}, state, {currentlySelected: action.currentlySelected});
 
-      case 'CHANGE_SELECTED_RECIPE':
-         console.log(action);
-         return Object.assign({}, state, {currentlySelected: action.currentlySelected});
+   case 'EDIT_RECIPE':
+      console.log(action);
+      newRecipes = [
+         ...state.recipes.slice(0, action.id),
+         action,
+         ...state.recipes.slice(action.id + 1)
+      ];
+      newState = Object.assign({}, state, {recipes: newRecipes} );
+      localStorage.setItem('recipesObject', JSON.stringify(newState));
+      return newState;
 
-      case 'EDIT_RECIPE':
-         console.log(action)
-         newRecipes = [
-            ...state.recipes.slice(0, action.id),
-            action,
-            ...state.recipes.slice(action.id + 1)
-         ]
-         newState = Object.assign({}, state, {recipes: newRecipes} )
-         localStorage.setItem('recipesObject', JSON.stringify(newState));
-         return newState;
+   default:
+      return state;
 
-      default:
-         return state;
-
-   };
+   }
 };
 
 const {createStore} = Redux;
 const store = createStore(recipeReducer);
 
 const RecipeList = React.createClass({
-
    getInitialState(){
       return {
          currentlySelected: store.getState().currentlySelected
-      }
+      };
    },
 
    editPrompt() {
       let current = store.getState().recipes[this.state.currentlySelected];
 
-      vex.close()
+      vex.close();
 
       vex.dialog.open({
          message: 'Edit Recipe',
          input: `<input name="editTitle" type="text" value="${current.title}" />
-               <textarea name="editIngs">${current.ings}</textarea>`,
+               <textarea name="editIngs" rows="7">${current.ings}</textarea>`,
          buttons: [
-            $.extend({}, vex.dialog.buttons.YES, {
-               text: 'OK'
-            }), $.extend({}, vex.dialog.buttons.NO, {
+            $.extend({}, vex.dialog.buttons.NO, {
                text: 'Cancel',
                click: () => vex.close()
+            }),
+            $.extend({}, vex.dialog.buttons.YES, {
+               text: 'OK'
             })
          ],
          callback: data => {
@@ -112,17 +99,17 @@ const RecipeList = React.createClass({
                   id: this.state.currentlySelected,
                   title: data.editTitle,
                   ings: data.editIngs
-               })
+               });
             }
          }
-      })
+      });
    },
 
-   infoPrompt(i, e) {
+   infoPrompt(i) {
       store.dispatch({
-         type: "CHANGE_SELECTED_RECIPE",
+         type: 'CHANGE_SELECTED_RECIPE',
          currentlySelected: i
-      })
+      });
 
       this.setState({currentlySelected: i}, () => {
          let current = store.getState().recipes[this.state.currentlySelected];
@@ -137,17 +124,14 @@ const RecipeList = React.createClass({
                   text: 'Edit',
                   click: () => this.editPrompt()
                })
-            ],
-            callback: data => {
-               if (data === false) {return console.log('Cancelled');};
-            }
+            ]
          });
       });
    },
 
    render(){
       return (
-         <ul>{
+         <ul className="col-xs-12">{
             this.props.recipes.map((recipe, i) => {
                return (<li className="jumbotron row" key={i}>
                   <div>
@@ -156,10 +140,10 @@ const RecipeList = React.createClass({
                   <div>
                      <span className="list__title col-xs-11" onClick={this.infoPrompt.bind(this, i)}>{recipe.title}</span>
                   </div>
-               </li>)
+               </li>);
             })
          }</ul>
-      )
+      );
    }
 });
 
@@ -173,16 +157,15 @@ const Header = (props) => {
             </div>
          </div>
       </div>
-   )
-}
+   );
+};
 
 const RecipeBox = React.createClass({
-
    savePrompt() {
       vex.dialog.open({
          message: 'Add a Recipe',
          input: `<input name="userTitle" type="text" placeholder="Name"/>
-            <textarea name="userIngs" type="text" placeholder="Ingredients/Cooking instructions"/>`,
+            <textarea name="userIngs" type="text" rows="7" placeholder="Ingredients/Cooking instructions"/>`,
          
          callback: data => {
             if(data) {
@@ -198,13 +181,12 @@ const RecipeBox = React.createClass({
    },
 
    render() {
-      let {recipes} = this.props;
       return (
          <div>
             <Header save={this.savePrompt}/>
             <RecipeList recipes={store.getState().recipes}/>
          </div>
-      )
+      );
    }
 });
 

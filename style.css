@@ -1,11 +1,14 @@
-@import url(https://fonts.googleapis.com/css?family=Marck+Script);
 @import url(https://fonts.googleapis.com/css?family=Chewy);
+@import url(https://fonts.googleapis.com/css?family=Bad+Script);
 body {
   background-color: #fff; }
 
 ul {
   list-style-type: none;
   position: relative; }
+
+textarea {
+  resize: none; }
 
 a {
   color: inherit;
@@ -21,7 +24,7 @@ a {
 .header__mainTitle {
   position: relative;
   float: left;
-  font-family: 'Chewy', cursive;
+  font-family: "Chewy", cursive;
   color: lightgray;
   font-size: 20px; }
 
@@ -44,7 +47,7 @@ a {
   -o-transition: opacity .12s ease-in-out !important;
   transition: opacity .12s ease-in-out !important; }
   .header__addButton:hover {
-    opacity: 0.8; }
+    opacity: 0.9; }
 
 .header__addButton__text {
   display: block;
@@ -74,16 +77,21 @@ a {
   -o-transition: opacity .12s ease-in-out !important;
   transition: opacity .12s ease-in-out !important; }
   .jumbotron:hover {
-    opacity: 0.8; }
+    opacity: 0.9; }
 
 .list__title {
-  font-size: 50px;
-  font-family: 'Marck Script', cursive;
+  margin-top: 10px;
+  font-size: 40px;
+  font-family: "Bad Script", cursive;
   display: inline-block;
   min-height: 100%; }
 
 .list__close-button {
-  padding-top: 10px;
+  margin-top: 10px;
   color: gray; }
+
+@media screen and (min-width: 992px) {
+  .container {
+    width: 750px; } }
 
 /*# sourceMappingURL=style.css.map */
