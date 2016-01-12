@@ -1,11 +1,15 @@
-//TODO: Local storage stuff (get on init, set on save)
+//TODO: Style w stuff from that stack overflow comment
+//TODO: Mousover close-button
+//TODO: Big-ass titles instead of images
+//TODO: delete infoprompt callback?
 //TODO: Test + Refactor
-//TODO: Tabs to spaces?
 //TODO: Eslint
-//TODO: Style
+//TODO: Ask for feedback from FCC and stackoverflow
+//TODO: Find out why it's able to retrieve by ID despite not specifying one
 
 const initial = () => {
-   return {
+
+   let recipesInit = {
       recipes: [
          {id: 1, title: 'Gorgonzola pie', ings: 'cheese, crust, sauce'},
          {id: 2, title: 'Parmesan di Siegfried Sassoon', ings: 'more cheese, chicken, roast'},
@@ -13,26 +17,44 @@ const initial = () => {
       ],
       currentlySelected: 1
    }
+
+   var retrievedObject = localStorage.getItem('recipesObject');
+   let parsedRetrievedObject = JSON.parse(retrievedObject);
+   console.log('parsedretrievedobject:', parsedRetrievedObject)
+   console.log('recipesInit:', recipesInit)
+
+   const noRecipesInLocalStorage = parsedRetrievedObject === null || parsedRetrievedObject.recipes.length == 0;
+
+   if(noRecipesInLocalStorage) {
+      return recipesInit;
+   } else {
+      return parsedRetrievedObject;
+   }
 }
 
 // Reducer
 const recipeReducer = (state = initial(), action) => {
+   let newState = {};
+   let newRecipes = [];
+
    switch (action.type) {
 
       case 'ADD_RECIPE':
          console.log(action);
-         let newRecipes = [...state.recipes, action];
-         return Object.assign({}, state, {recipes: newRecipes})
-         break;
+         newRecipes = [...state.recipes, action];
+         newState = Object.assign({}, state, {recipes: newRecipes})
+         localStorage.setItem('recipesObject', JSON.stringify(newState));
+         return newState;
 
       case 'DELETE_RECIPE':
          console.log(action);
-         let recipesWithDeletion = [
+         newRecipes = [
             ...state.recipes.slice(0, action.id),
             ...state.recipes.slice(action.id + 1)
          ];
-         return Object.assign({}, state, {recipes: recipesWithDeletion});
-         break;
+         newState = Object.assign({}, state, {recipes: newRecipes});
+         localStorage.setItem('recipesObject', JSON.stringify(newState));
+         return newState;
 
       case 'CHANGE_SELECTED_RECIPE':
          console.log(action);
@@ -40,17 +62,18 @@ const recipeReducer = (state = initial(), action) => {
 
       case 'EDIT_RECIPE':
          console.log(action)
-         let editedRecipes = [
+         newRecipes = [
             ...state.recipes.slice(0, action.id),
             action,
             ...state.recipes.slice(action.id + 1)
          ]
-         return Object.assign({}, state, {recipes: editedRecipes} )
-         break;
+         newState = Object.assign({}, state, {recipes: newRecipes} )
+         localStorage.setItem('recipesObject', JSON.stringify(newState));
+         return newState;
 
       default:
          return state;
-         break;
+
    };
 };
 
@@ -67,7 +90,9 @@ const RecipeList = React.createClass({
 
    editPrompt() {
       let current = store.getState().recipes[this.state.currentlySelected];
+
       vex.close()
+
       vex.dialog.open({
          message: 'Edit Recipe',
          input: `<input name="editTitle" type="text" value="${current.title}" />
@@ -81,26 +106,27 @@ const RecipeList = React.createClass({
             })
          ],
          callback: data => {
-            store.dispatch({
-               type: 'EDIT_RECIPE',
-               id: this.state.currentlySelected,
-               title: data.editTitle,
-               ings: data.editIngs
-            })
+            if(data){
+               store.dispatch({
+                  type: 'EDIT_RECIPE',
+                  id: this.state.currentlySelected,
+                  title: data.editTitle,
+                  ings: data.editIngs
+               })
+            }
          }
       })
    },
 
    infoPrompt(i, e) {
-      
       store.dispatch({
          type: "CHANGE_SELECTED_RECIPE",
          currentlySelected: i
       })
 
       this.setState({currentlySelected: i}, () => {
-
          let current = store.getState().recipes[this.state.currentlySelected];
+
          vex.dialog.open({
             message: `<h1>${current.title}</h1> \n ${current.ings}`,
             input: '',
@@ -123,9 +149,13 @@ const RecipeList = React.createClass({
       return (
          <ul>{
             this.props.recipes.map((recipe, i) => {
-               return (<li key={i}>
-                  <span onClick={this.infoPrompt.bind(this, i)}>{recipe.title}</span>&nbsp;
-                  <button onClick={ () => store.dispatch({id: i, type: 'DELETE_RECIPE'}) }>x</button>
+               return (<li className="jumbotron row" key={i}>
+                  <div>
+                     <span className="list__close-button col-xs-1" onClick={ () => store.dispatch({id: i, type: 'DELETE_RECIPE'}) }>&times;</span>
+                  </div>
+                  <div>
+                     <span className="list__title col-xs-11" onClick={this.infoPrompt.bind(this, i)}>{recipe.title}</span>
+                  </div>
                </li>)
             })
          }</ul>
@@ -133,11 +163,24 @@ const RecipeList = React.createClass({
    }
 });
 
+const Header = (props) => {
+   return (
+      <div className="header">
+         <h5 className="header__mainTitle"><a href="http://github.com/alanbuchanan">My Tasty Recipes</a></h5>
+         <div className="header__addButton-container">
+            <div className="header__addButton" onClick={props.save}>
+               <span className="header__addButton__text">+</span>
+            </div>
+         </div>
+      </div>
+   )
+}
+
 const RecipeBox = React.createClass({
 
    savePrompt() {
       vex.dialog.open({
-         message: 'Add an item',
+         message: 'Add a Recipe',
          input: `<input name="userTitle" type="text" placeholder="Name"/>
             <textarea name="userIngs" type="text" placeholder="Ingredients/Cooking instructions"/>`,
          
@@ -155,30 +198,16 @@ const RecipeBox = React.createClass({
    },
 
    render() {
-      let {recipes, add} = this.props;
+      let {recipes} = this.props;
       return (
          <div>
-            <RecipeList recipes={recipes}/>
-            <button onClick={this.savePrompt}>Add a recipe!</button>
+            <Header save={this.savePrompt}/>
+            <RecipeList recipes={store.getState().recipes}/>
          </div>
       )
    }
 });
 
-
-const Main = React.createClass({
-
-   render() {
-      console.log(store.getState())
-      return (
-         <RecipeBox
-            add={ () => store.dispatch({type: 'ADD_RECIPE'}) }
-            recipes={store.getState().recipes}
-         />
-      );
-   }
-});
-
-const render = () => ReactDOM.render(<Main />, document.getElementById('root'));
+const render = () => ReactDOM.render(<RecipeBox />, document.getElementById('root'));
 store.subscribe(render);
 render();
