@@ -1,3 +1,5 @@
+//TODO: link goes nowhere on ipad
+
 const initial = () => {
    let recipesInit = {
       recipes: [
@@ -133,7 +135,7 @@ const RecipeList = React.createClass({
       return (
          <ul className="col-xs-12">{
             this.props.recipes.map((recipe, i) => {
-               return (<li className="jumbotron row" key={i}>
+               return (<li className="jumbotron list__jumbo row" key={i}>
                   <div>
                      <span className="list__close-button col-xs-1" onClick={ () => store.dispatch({id: i, type: 'DELETE_RECIPE'}) }>&times;</span>
                   </div>
@@ -149,12 +151,10 @@ const RecipeList = React.createClass({
 
 const Header = (props) => {
    return (
-      <div className="header">
+      <div className="header-main">
          <h5 className="header__mainTitle"><a href="http://github.com/alanbuchanan">My Tasty Recipes</a></h5>
          <div className="header__addButton-container">
-            <div className="header__addButton" onClick={props.save}>
-               <span className="header__addButton__text">+</span>
-            </div>
+            <a onClick={props.save} target="_blank"><span className="glyphicon glyphicon-plus-sign"></span></a>
          </div>
       </div>
    );
